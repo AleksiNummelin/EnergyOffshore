@@ -1,0 +1,11 @@
+"""
+THIS IS THE VERY FIRST ITERATION OF THE ENERGY OFFSHORE
+"""
+def main():
+    '''
+    call all other functions
+    '''
+
+if __name__ == '__main__':
+    '''EXECUTE ENERGY OFFSHORE -- STATISTICS IN SUPPORT OF SITING'''
+    main()
