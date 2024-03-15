@@ -1,0 +1,78 @@
+# paths
+opa_path: /pfs/lustrep3/scratch/project_465000454/lehtiran/data/hist-a03h-Nordic/
+data_path: /pfs/lustrep3/scratch/project_465000454/nummelin/output/
+plot_path: /users/nummelin/
+# which year range to use (inclusive)
+years: [1991, 1999]
+
+# use dask?
+use_dask: True
+
+# config dask
+dask:
+    dask_path: /pfs/lustrep3/scratch/project_465000454/nummelin/dask/
+    n_workers: 1
+    n_threads: 2
+
+# do you want to compute climatologies (or have you done that before)
+compute_climatologies: False
+
+# visualize?
+visualize: True
+
+# verify?
+verify: True
+
+# which exceedance variables to load
+var_exceed:
+    ws100:
+        limits: ['25']
+    ws10:
+        limits: ['21','18','10']
+    sithick:
+        limits: ['005','04','06']
+    siconc:
+        limits: ['015']
+
+# which threshold combinations to use
+threshold_combination:
+    Installation_limit_wind_and_ice: [ws10_exceed10,sithick_exceed005,siconc_exceed015]
+    Installation_limit_wind: [ws10_exceed10]
+    Service_limit_high_wind: [ws10_exceed18]
+    Service_limit_storm_wind: [ws10_exceed21]
+    Production_stop: [ws100_exceed25]
+
+# Which areas to use for timeseries plots?
+timeseries_areas:
+    NS_slice:
+        lat_slice: [54.5,55]
+        lon_slice: [5,7]
+        name: Southern North Sea
+    SBS_slice:
+        lat_slice: [55.2,56]
+        lon_slice: [17,19]
+        name: Southern Baltic Sea
+    BB_slice:
+        lat_slice: [64.5,65]
+        lon_slice: [22,23]
+        name: Bothnian Bay, Baltic Sea
+
+# Which areas to use for verification?
+# Note that CERRA data needs to be available
+# for the given region
+verification_areas:
+    BB_slice:
+        lat_slice: [64.5,65]
+        lon_slice: [22,23]
+        name: Bothnian Bay, Baltic Sea
+    SBS_slice:
+        lat_slice: [55.2,56]
+        lon_slice: [17,19]
+        name: Southern Baltic Sea
+
+verification_variables: [ws10_exceed21, ws10_exceed18, ws10_exceed10]
+
+# map extent (we use NearsidePerspective projection)
+map:
+    region: [-5, 30, 50, 68]
+    satellite_height: 800000
