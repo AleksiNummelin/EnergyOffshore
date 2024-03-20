@@ -19,7 +19,7 @@ import yaml
 from dask.distributed import Client, LocalCluster, progress
 import os
 import socket
-import EnergyOffshore as EO
+from EnergyOffshore import EnergyOffshore_analysis_and_visualization as EO
 
 if __name__ == '__main__':
     '''EXECUTE ENERGY OFFSHORE -- STATISTICS IN SUPPORT OF SITING'''
@@ -79,8 +79,8 @@ if __name__ == '__main__':
             elif key in ['ws10_exceed21']:
                 threshold='Service_limit_storm_wind'
             #
-            verification_climatologies['IFS_'+key]           = EO.climatology[threshold]
-            verification_extreme_climatologies['IFS_'+key]   = EO.extreme_climatology[threshold]
+            verification_climatologies['IFS_'+key]           = climatology[threshold]
+            verification_extreme_climatologies['IFS_'+key]   = extreme_climatology[threshold]
             verification_climatologies['CERRA_'+key]         = CERRA[key].climatology
             verification_extreme_climatologies['CERRA_'+key] = CERRA[key].extreme_climatology
         #
@@ -102,10 +102,10 @@ if __name__ == '__main__':
             else:
                 levels=np.arange(0.5,1,0.05)
             #
-            EO.plot_climatology(climatology[combination],weather_windows[combination],
+            EO.plot_climatology(climatology[combination],weather_windows[combination],config,
                              plot_name=config['plot_path']+'DT_climate_'+combination+'_with_weather_windows.png',
                              plot_windows=True,proj=proj2,extent=config['map']['region'],levels=levels)
-            EO.plot_climatology(climatology[combination],weather_windows[combination],
+            EO.plot_climatology(climatology[combination],weather_windows[combination],config,
                              plot_name=config['plot_path']+'DT_climate_'+combination+'_without_weather_windows.png',
                              plot_windows=False,proj=proj2,extent=config['map']['region'],levels=levels)
         # PLOT A TIMESERIES

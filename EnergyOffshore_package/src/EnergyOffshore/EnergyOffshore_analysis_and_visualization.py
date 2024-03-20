@@ -176,7 +176,7 @@ def verify_climatology_at_location(climatologies,extreme_climatologies,areas,plo
                 bbox_inches='tight',bbox_extra_artists=[ylab])
     plt.close('all')
 
-def plot_climatology(climatology,weather_windows,
+def plot_climatology(climatology,weather_windows,config,
                      plot_name='DT_climate_threshold_exceedance_with_weather_windows.png',
                      plot_windows=True,proj=None,extent=None,levels=None):
     '''
