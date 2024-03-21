@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application preprocessing
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.1.0
+#Version: 0.2.3
 #
 # assumied to be run on LUMI with
 # singularity shell --bind /pfs/lustrep3/scratch/project_465000454/ pangeo-notebook_latest.sif
@@ -15,7 +15,7 @@ import yaml
 from dask.distributed import Client, LocalCluster, progress
 import os
 import socket
-import EnergyOffshore as EO
+from EnergyOffshore import EnergyOffshore_analysis_and_visualization as EO
 
 if __name__ == '__main__':
     #
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     config     = yaml.load(open('config_visuals.yml'),Loader=yaml.FullLoader)
     path       = config['opa_path']
     outputpath = config['data_path']
-    years      = list(np.arange([min(config['years']),max(config['years'])]))
+    years      = list(np.arange(min(config['years']),max(config['years'])))
     #
     for year in years:
         print(year)
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         #
         # 10 m winds
         winds10m  = xr.open_mfdataset(sorted(glob.glob(path+'/'+str(year)+'/*_10ws_raw_data.nc')),concat_dim='time',
-                                      combine='nested',chunks={'time':24},preprocess=preprocess)
+                                      combine='nested',chunks={'time':24},preprocess=EO.preprocess)
         #
         winds10m  = winds10m.rename({'10ws':'ws10'})
         exceed21  = winds10m.ws10.where(winds10m.ws10>21).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         exceed10.astype('float32').to_dataset(name='ws10_exceed10').to_netcdf(outputpath+'ws10_exceed_10_'+str(year)+'.nc')
         #
         ocean = xr.open_mfdataset(sorted(glob.glob(path+'/'+str(year)+'/*_oce.nc')),concat_dim='time',
-                                  combine='nested',chunks={'time':24},preprocess=preprocess)
+                                  combine='nested',chunks={'time':24},preprocess=EO.preprocess)
         ocean = ocean.rename({'time':'date'}).assign_coords(date=date_axis)
         # Sea ice variables
         #

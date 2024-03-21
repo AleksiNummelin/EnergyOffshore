@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.1.0
+#Version: 0.2.3
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -316,7 +316,24 @@ def compute_climatologies(data,config):
     '''
     Compute monthly climatologies and save them to netcdf files.
     
-    data: dict of 
+    Input:
+    ------
+    config: dict, loaded from the configuration.yml file and including
+            the names of the desired variables under the key {'var_exceed'}
+            and their desired exceedance values. Climatological output 
+            will be saved under the directory defined by 'data_path' key.
+            
+    data: dict of xr.DataArrays (time,lat,lon). The xr.DataArrays are the daily exceedance
+          statistics of a given variable (1-24 if based on hourly data, 0-1 if based on daily data).
+          The dict entries are names like 'var_name_exceed_limit' e.g. ws10_exceed_21 for 10 m wind
+          exceeding 21 m/s.
+
+    Output:
+    -------
+    
+    This function does not return any variables, but instead will save monthly statistics to annual files
+    under the directory defined in configuration yml file by the 'data_path' key.
+    
     '''
     threshold_combination = config['threshold_combination']
     #
