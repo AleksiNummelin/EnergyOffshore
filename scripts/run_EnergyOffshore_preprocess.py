@@ -22,9 +22,9 @@ if __name__ == '__main__':
     config     = yaml.load(open('config_visuals.yml'),Loader=yaml.FullLoader)
     path       = config['opa_path']
     outputpath = config['data_path']
-    dask_path  = config['dask_path']
+    dask_path  = config['dask']['dask_path']
     #
-    dask_path = '/pfs/lustrep3/scratch/project_465000454/nummelin/dask/'
+    #dask_path = '/pfs/lustrep3/scratch/project_465000454/nummelin/dask/'
     # create a dask cluster
     local_dir = dask_path+socket.gethostname()+'/'
     if not os.path.isdir(local_dir):
@@ -51,7 +51,7 @@ if __name__ == '__main__':
                                       combine='nested',chunks={'time':24},preprocess=EO.preprocess)
             #
             #winds100m = winds100m.rename({'100ws':'ws100'})
-            exceed25 = winds100m.ws100.where(winds100m['100ws']>25).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([25])})
+            exceed25 = winds100m['100ws'].where(winds100m['100ws']>25).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([25])})
             #
             for	month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                                       combine='nested',chunks={'time':24},preprocess=EO.preprocess)
             #
             #winds10m  = winds10m.rename({'10ws':'ws10'})
-            exceed21  = winds10m.ws10.where(winds10m['10ws']>21).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([21])})
+            exceed21  = winds10m['10ws'].where(winds10m['10ws']>21).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([21])})
             #exceed21.astype('float32').to_dataset(name='10ws_exceed21').to_netcdf(outputpath+'10ws_exceed_21_'+str(year)+'.nc')
             exceed18  = winds10m.ws10.where(winds10m['10ws']>18).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([18])})
             #exceed18.astype('float32').to_dataset(name='10ws_exceed18').to_netcdf(outputpath+'10ws_exceed_18_'+str(year)+'.nc')
