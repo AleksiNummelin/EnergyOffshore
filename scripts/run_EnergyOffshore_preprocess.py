@@ -8,6 +8,7 @@
 # singularity shell --bind /pfs/lustrep3/scratch/project_465000454/ pangeo-notebook_latest.sif
 import xarray as xr
 import pandas as pd
+from pandas.tseries.offsets import MonthEnd
 import numpy as np
 import glob
 import yaml
@@ -57,7 +58,7 @@ if __name__ == '__main__':
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
                     str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_100ws_timestep_60_daily_thresh_exceed.nc'
-                exceed25.squeeze().astype('float32').sel(time=timeslice).to_dataset(name='100ws').to_netcdf(outputpath+filename)
+                exceed25.squeeze().astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='100ws').to_netcdf(outputpath+filename)
         #
         if config['preproc']['10ws']:
             # 10 m winds
@@ -75,7 +76,7 @@ if __name__ == '__main__':
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
                     str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_10ws_timestep_60_daily_thresh_exceed.nc'
-                out.astype('float32').sel(time=timeslice).to_dataset(name='10ws').to_netcdf(outputpath+filename)
+                out.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='10ws').to_netcdf(outputpath+filename)
             #exceed10.astype('float32').to_dataset(name='10ws_exceed10').to_netcdf(outputpath+'10ws_exceed_10_'+str(year)+'.nc')
         #
         if config['preproc']['oce']:
@@ -95,14 +96,14 @@ if __name__ == '__main__':
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
                     str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_sithick_timestep_60_daily_thresh_exceed.nc'
-                out.astype('float32').sel(time=timeslice).to_dataset(name='sithick').to_netcdf(outputpath+filename)
+                out.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='sithick').to_netcdf(outputpath+filename)
             #
             siconc_exceed015  = (ocean.avg_siconc  > 0.15).rename('siconc').expand_dims({'thresholds':np.array([0.15])})
             for month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
                     str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_siconc_timestep_60_daily_thresh_exceed.nc'
-                siconc_exceed015.astype('float32').sel(time=timeslice).to_dataset(name='siconc').to_netcdf(outputpath+filename)
+                siconc_exceed015.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='siconc').to_netcdf(outputpath+filename)
             #
             #sithick_exceed005 = (ocean.avg_sithick > 0.05).rename('sithick_exceed0.05').to_dataset().to_netcdf(outputpath+'sithick_exceed_0.05_'+str(year)+'.nc') # our 'no ice' limit# 
             #sithick_exceed04  = (ocean.avg_sithick > 0.4).rename('sithick_exceed0.4').to_dataset().to_netcdf(outputpath+'sithick_exceed_0.4_'+str(year)+'.nc') # IC
