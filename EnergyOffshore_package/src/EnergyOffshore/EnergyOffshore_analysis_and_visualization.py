@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.3
+#Version: 0.2.4
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -392,13 +392,20 @@ def load_data(config):
     data={}
     for var in var_exceed.keys():
         print(var)
+        thresholds
+        #for limit in var_exceed[var]['limits']:
+        flist=[]
+        for year in range(year0,year1+1):
+            for month in range(1,13):
+                flist.append(glob.glob(config['data_path']+str(year)+'_'+str(month).zfill(2)+ \
+                                                     '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc')[0])
+            #flist.append(config['data_path']+var+'_exceed_'+limit+'_'+str(year)+'.nc')
+        #data[var+'_exceed'+limit] =
+        dum = xr.open_mfdataset(flist,combine='nested',
+                                concat_dim='time',preprocess=preprocess,engine='netcdf4')
         for limit in var_exceed[var]['limits']:
-            flist=[]
-            for year in range(year0,year1+1):
-                flist.append(config['data_path']+var+'_exceed_'+limit+'_'+str(year)+'.nc')
-            data[var+'_exceed'+limit] = xr.open_mfdataset(flist,combine='nested',
-                                                          concat_dim='date',preprocess=preprocess,engine='netcdf4')
-            if 'date' in list(data[var+'_exceed'+limit].coords):
-                print(var+'_exceed'+limit)
-                data[var+'_exceed'+limit]=data[var+'_exceed'+limit].rename({'date':'time'})
+            data[var+'_exceed'+limit] = dum.sel(thresholds=float(limit)).squeeze()
+            #if 'date' in list(data[var+'_exceed'+limit].coords):
+            #    print(var+'_exceed'+limit)
+            #    data[var+'_exceed'+limit]=data[var+'_exceed'+limit].rename({'date':'time'})
     return data

@@ -7,8 +7,8 @@ years: [1990, 1999]
 
 # Which variables to preprocess - if used with the preprocessing script
 preproc:
-   ws100: True
-   ws10: True
+   100ws: True
+   10ws: True
    oce: True
 
 # use dask?
@@ -31,22 +31,22 @@ verify: True
 
 # which exceedance variables to load
 var_exceed:
-    ws100:
+    100ws:
         limits: ['25']
-    ws10:
+    10ws:
         limits: ['21','18','10']
     sithick:
-        limits: ['005','04','06']
+        limits: ['0.05','0.4','0.6']
     siconc:
-        limits: ['015']
+        limits: ['0.15']
 
 # which threshold combinations to use
 threshold_combination:
-    Installation_limit_wind_and_ice: [ws10_exceed10,sithick_exceed005,siconc_exceed015]
-    Installation_limit_wind: [ws10_exceed10]
-    Service_limit_high_wind: [ws10_exceed18]
-    Service_limit_storm_wind: [ws10_exceed21]
-    Production_stop: [ws100_exceed25]
+    Installation_limit_wind_and_ice: [10ws_exceed10,sithick_exceed005,siconc_exceed015]
+    Installation_limit_wind: [10ws_exceed10]
+    Service_limit_high_wind: [10ws_exceed18]
+    Service_limit_storm_wind: [10ws_exceed21]
+    Production_stop: [100ws_exceed25]
 
 # Which areas to use for timeseries plots?
 timeseries_areas:
@@ -76,7 +76,7 @@ verification_areas:
         lon_slice: [17,19]
         name: Southern Baltic Sea
 
-verification_variables: [ws10_exceed21, ws10_exceed18, ws10_exceed10]
+verification_variables: [10ws_exceed21, 10ws_exceed18, 10ws_exceed10]
 
 # map extent (we use NearsidePerspective projection)
 map:

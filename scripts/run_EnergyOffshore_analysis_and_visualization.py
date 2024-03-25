@@ -72,11 +72,11 @@ if __name__ == '__main__':
         verification_climatologies={}
         verification_extreme_climatologies={}
         for key in config['verification_variables']:
-            if key in ['ws10_exceed10']:
+            if key in ['10ws_exceed10']:
                 threshold='Installation_limit_wind'
-            elif key in ['ws10_exceed18']:
+            elif key in ['10ws_exceed18']:
                 threshold='Service_limit_high_wind'
-            elif key in ['ws10_exceed21']:
+            elif key in ['10ws_exceed21']:
                 threshold='Service_limit_storm_wind'
             #
             verification_climatologies['IFS_'+key]           = climatology[threshold]
