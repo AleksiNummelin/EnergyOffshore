@@ -68,9 +68,9 @@ if __name__ == '__main__':
             #winds10m  = winds10m.rename({'10ws':'ws10'})
             exceed21  = winds10m['10ws'].where(winds10m['10ws']>21).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([21])})
             #exceed21.astype('float32').to_dataset(name='10ws_exceed21').to_netcdf(outputpath+'10ws_exceed_21_'+str(year)+'.nc')
-            exceed18  = winds10m.ws10.where(winds10m['10ws']>18).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([18])})
+            exceed18  = winds10m['10ws'].where(winds10m['10ws']>18).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([18])})
             #exceed18.astype('float32').to_dataset(name='10ws_exceed18').to_netcdf(outputpath+'10ws_exceed_18_'+str(year)+'.nc')
-            exceed10  = winds10m.ws10.where(winds10m['10ws']>10).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([10])})
+            exceed10  = winds10m['10ws'].where(winds10m['10ws']>10).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([10])})
             out = xr.concat([exceed10,exceed18,exceed21],dim='thresholds').squeeze()
             for month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
