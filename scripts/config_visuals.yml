@@ -1,6 +1,6 @@
 # paths
-opa_path: /pfs/lustrep3/scratch/project_465000454/lehtiran/data/hist-a03h-Nordic/
-data_path: /pfs/lustrep3/scratch/project_465000454/nummelin/output/monthly/
+opa_path: /pfs/lustrep3/scratch/project_465000454/lehtiran/data/hist-a03h-Nordic/monthly_thresholds/
+data_path: /pfs/lustrep3/scratch/project_465000454/nummelin/output/
 plot_path: /users/nummelin/plots/
 # which year range to use (inclusive)
 years: [1990, 1999]
@@ -42,7 +42,7 @@ var_exceed:
 
 # which threshold combinations to use
 threshold_combination:
-    Installation_limit_wind_and_ice: [10ws_exceed10,sithick_exceed005,siconc_exceed015]
+    Installation_limit_wind_and_ice: [10ws_exceed10,sithick_exceed0.05,siconc_exceed0.15]
     Installation_limit_wind: [10ws_exceed10]
     Service_limit_high_wind: [10ws_exceed18]
     Service_limit_storm_wind: [10ws_exceed21]

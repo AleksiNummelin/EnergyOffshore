@@ -66,8 +66,9 @@ if __name__ == '__main__':
     # VALIDATION WITH CERRA 
     if config['verify']:
         CERRA={}
+        CERRA_var={'10ws_exceed10':'ws10_exceed10','10ws_exceed18':'ws10_exceed18','10ws_exceed21':'ws10_exceed21'}
         for var in config['verification_variables']:
-            CERRA[var] = xr.open_dataset(config['data_path']+'CERRA_'+var+'_climatologies.nc')
+            CERRA[var] = xr.open_dataset(config['data_path']+'CERRA_'+CERRA_var[var]+'_climatologies.nc')
         # plot some locations
         verification_climatologies={}
         verification_extreme_climatologies={}
@@ -86,7 +87,7 @@ if __name__ == '__main__':
         #
         EO.verify_climatology_at_location(verification_climatologies,verification_extreme_climatologies,
                                        config['verification_areas'],
-                                       plot_name=config['plot_path']+'DT_climate_verify_point_climatologies_with_CERRA.png')
+                                       plot_name=config['plot_path']+'DT_climate_verify_point_climatologies_with_CERRA_'+years_str+'.png')
     # VISUALIZE DATA ON A MAP AND TIMESERIES
     if config['visualize']:
         # PLOT A MAP
@@ -103,15 +104,15 @@ if __name__ == '__main__':
                 levels=np.arange(0.5,1,0.05)
             #
             EO.plot_climatology(climatology[combination],weather_windows[combination],config,
-                             plot_name=config['plot_path']+'DT_climate_'+combination+'_with_weather_windows.png',
+                             plot_name=config['plot_path']+'DT_climate_'+combination+'_with_weather_windows_'+years_str+'.png',
                              plot_windows=True,proj=proj2,extent=config['map']['region'],levels=levels)
             EO.plot_climatology(climatology[combination],weather_windows[combination],config,
-                             plot_name=config['plot_path']+'DT_climate_'+combination+'_without_weather_windows.png',
+                             plot_name=config['plot_path']+'DT_climate_'+combination+'_without_weather_windows_'+years_str+'.png',
                              plot_windows=False,proj=proj2,extent=config['map']['region'],levels=levels)
         # PLOT A TIMESERIES
         for combination in threshold_combination.keys():
             print('plot '+combination)
             EO.plot_climatology_at_location(climatology[combination],extreme_climatology[combination],
                                          config['timeseries_areas'],
-                                         plot_name=config['plot_path']+'DT_climate_'+combination+'_point_climatology.png')
+                                         plot_name=config['plot_path']+'DT_climate_'+combination+'_point_climatology_'+years_str+'.png')
 

@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
                     str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_100ws_timestep_60_daily_thresh_exceed.nc'
-                exceed25.squeeze().astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='100ws').to_netcdf(outputpath+filename)
+                exceed25.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='100ws').to_netcdf(outputpath+filename)
         #
         if config['preproc']['10ws']:
             # 10 m winds
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             exceed18  = winds10m['10ws'].where(winds10m['10ws']>18).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([18])})
             #exceed18.astype('float32').to_dataset(name='10ws_exceed18').to_netcdf(outputpath+'10ws_exceed_18_'+str(year)+'.nc')
             exceed10  = winds10m['10ws'].where(winds10m['10ws']>10).notnull().groupby('time.date').sum('time').assign_coords(date=date_axis).expand_dims({'thresholds':np.array([10])})
-            out = xr.concat([exceed10,exceed18,exceed21],dim='thresholds').squeeze()
+            out = xr.concat([exceed10,exceed18,exceed21],dim='thresholds')
             for month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
@@ -88,21 +88,21 @@ if __name__ == '__main__':
             # see Baltic Ice class rules https://www.finlex.fi/data/normit/47238/03_jaaluokkamaarays_2021_EN.pdf
             # section 4.2.1 on ice loads and the assumed ice thickness at which the different classes can operate
             #
-            sithick_exceed005 = (ocean.avg_sithick > 0.05).rename('sithick').expand_dims({'thresholds':np.array([0.05])})
-            sithick_exceed04  = (ocean.avg_sithick > 0.4).rename('sithick').expand_dims({'thresholds':np.array([0.4])})
-            sithick_exceed06  = (ocean.avg_sithick > 0.6).rename('sithick').expand_dims({'thresholds':np.array([0.6])})
-            out = xr.concat([sithick_exceed005,sithick_exceed04,sithick_exceed06],dim='thresholds').squeeze()
+            sithick_exceed005 = (ocean.avg_sithick > 0.05).rename('avg_sithick').expand_dims({'thresholds':np.array([0.05])})
+            sithick_exceed04  = (ocean.avg_sithick > 0.4).rename('avg_sithick').expand_dims({'thresholds':np.array([0.4])})
+            sithick_exceed06  = (ocean.avg_sithick > 0.6).rename('avg_sithick').expand_dims({'thresholds':np.array([0.6])})
+            out = xr.concat([sithick_exceed005,sithick_exceed04,sithick_exceed06],dim='thresholds')
             for month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
-                    str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_sithick_timestep_60_daily_thresh_exceed.nc'
+                    str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_avg_sithick_timestep_1440_daily_thresh_exceed.nc'
                 out.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='sithick').to_netcdf(outputpath+filename)
             #
-            siconc_exceed015  = (ocean.avg_siconc  > 0.15).rename('siconc').expand_dims({'thresholds':np.array([0.15])})
+            siconc_exceed015  = (ocean.avg_siconc  > 0.15).rename('avg_siconc').expand_dims({'thresholds':np.array([0.15])})
             for month in range(1,13):
                 timeslice=slice(pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01'),pd.to_datetime(str(year)+'-'+str(month).zfill(2)+'-01')+MonthEnd(1))
                 filename = str(timeslice.start.year)+'_'+str(timeslice.start.month).zfill(2)+'_'+str(timeslice.start.day).zfill(2)+'_to_'+ \
-                    str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_siconc_timestep_60_daily_thresh_exceed.nc'
+                    str(timeslice.stop.year)+'_'+str(timeslice.stop.month).zfill(2)+'_'+str(timeslice.stop.day).zfill(2)+'_avg_siconc_timestep_1440_daily_thresh_exceed.nc'
                 siconc_exceed015.astype('float32').rename({'date':'time'}).sel(time=timeslice).to_dataset(name='siconc').to_netcdf(outputpath+filename)
             #
             #sithick_exceed005 = (ocean.avg_sithick > 0.05).rename('sithick_exceed0.05').to_dataset().to_netcdf(outputpath+'sithick_exceed_0.05_'+str(year)+'.nc') # our 'no ice' limit# 

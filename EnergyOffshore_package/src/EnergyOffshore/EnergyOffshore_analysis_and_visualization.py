@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.4
+#Version: 0.2.5
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -144,11 +144,11 @@ def verify_climatology_at_location(climatologies,extreme_climatologies,areas,plo
         #
         ax.set_title(areas[area]['name'],fontsize=16)
         for k,key in enumerate(climatologies.keys()):
-            if 'ws10_exceed10' in key:
+            if '10ws_exceed10' in key:
                 threshold='Installation_limit_wind'
-            elif 'ws10_exceed18' in key:
+            elif '10ws_exceed18' in key:
                 threshold='Service_limit_high_wind'
-            elif 'ws10_exceed21' in key:
+            elif '10ws_exceed21' in key:
                 threshold='Service_limit_storm_wind'
             if 'IFS' in key:
                 threshold=threshold+' IFS'
@@ -392,19 +392,19 @@ def load_data(config):
     data={}
     for var in var_exceed.keys():
         print(var)
-        thresholds
         #for limit in var_exceed[var]['limits']:
         flist=[]
         for year in range(year0,year1+1):
             for month in range(1,13):
-                flist.append(glob.glob(config['data_path']+str(year)+'_'+str(month).zfill(2)+ \
+                flist.append(glob.glob(config['opa_path']+str(year)+'_'+str(month).zfill(2)+ \
                                                      '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc')[0])
             #flist.append(config['data_path']+var+'_exceed_'+limit+'_'+str(year)+'.nc')
         #data[var+'_exceed'+limit] =
         dum = xr.open_mfdataset(flist,combine='nested',
                                 concat_dim='time',preprocess=preprocess,engine='netcdf4')
         for limit in var_exceed[var]['limits']:
-            data[var+'_exceed'+limit] = dum.sel(thresholds=float(limit)).squeeze()
+            #print(var)
+            data[var+'_exceed'+limit] = dum.sel(thresholds=float(limit)).squeeze().rename({var:var+'_exceed'+limit})
             #if 'date' in list(data[var+'_exceed'+limit].coords):
             #    print(var+'_exceed'+limit)
             #    data[var+'_exceed'+limit]=data[var+'_exceed'+limit].rename({'date':'time'})
