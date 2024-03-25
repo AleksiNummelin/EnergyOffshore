@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.5
+#Version: 0.2.6
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -353,7 +353,7 @@ def compute_climatologies(data,config):
         # calculate and save the climatology of weather windows given the 'suitable conditions' mask
         years_str = str(config['years'][0])+'_'+str(config['years'][1])
         print('weather windows')
-        weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'lat':60,'lon':60}))
+        weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1,'lat':60,'lon':60}))
         weather_window.to_dataset(name=combination).\
             to_netcdf(config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc')
         # calculate and save the climatology of the suitable conditions (frequency)
@@ -396,8 +396,15 @@ def load_data(config):
         flist=[]
         for year in range(year0,year1+1):
             for month in range(1,13):
-                flist.append(glob.glob(config['opa_path']+str(year)+'_'+str(month).zfill(2)+ \
-                                                     '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc')[0])
+                fname = glob.glob(config['opa_path']+str(year)+'_'+str(month).zfill(2)+ \
+                                  '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc')
+                if len(fname)==0:
+                    print('file '+config['opa_path']+str(year)+'_'+str(month).zfill(2)+ \
+                          '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc' + ' not found')
+                else:
+                    flist.append(fname[0])
+                #flist.append(glob.glob(config['opa_path']+str(year)+'_'+str(month).zfill(2)+ \
+                #                                     '_??_to_'+str(year)+'_'+str(month).zfill(2)+'_??_'+var+'*_daily_thresh_exceed.nc')[0])
             #flist.append(config['data_path']+var+'_exceed_'+limit+'_'+str(year)+'.nc')
         #data[var+'_exceed'+limit] =
         dum = xr.open_mfdataset(flist,combine='nested',
