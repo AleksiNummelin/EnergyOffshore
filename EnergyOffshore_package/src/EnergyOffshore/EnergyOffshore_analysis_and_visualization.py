@@ -2,11 +2,12 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.6
+#Version: 0.2.7
 
 ### --- Libraries --- ### 
 import numpy as np
 import xarray as xr
+from datetime import datetime,timedelta
 import glob
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -312,7 +313,7 @@ def compute_extreme_climatology(var,quantiles=[0.05,0.5,0.95]):
     
     return var_out
 
-def compute_climatologies(data,config):
+def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60}):
     '''
     Compute monthly climatologies and save them to netcdf files.
     
@@ -327,17 +328,22 @@ def compute_climatologies(data,config):
           statistics of a given variable (1-24 if based on hourly data, 0-1 if based on daily data).
           The dict entries are names like 'var_name_exceed_limit' e.g. ws10_exceed_21 for 10 m wind
           exceeding 21 m/s.
+    spatial_chunks: dict, default is {'lat':60,'lon':60}. In order to compute weather windows and extreme
+                    climatologies, we need to have a continuous chunk on time dimension. Therefore, it is
+                    likely desirable to chunk the spatial dimensions in order to avoid very large memory
+                    consumption.
 
     Output:
     -------
     
-    This function does not return any variables, but instead will save monthly statistics to annual files
-    under the directory defined in configuration yml file by the 'data_path' key.
+    out_names: This function saves monthly statistics to annual files and returns the files paths as a dictionary. 
+               The output directory is defined in configuration yml file by the 'data_path' key.
     
     '''
     threshold_combination = config['threshold_combination']
     #
     suitable_conditions={}
+    out_names={}
     for combination in threshold_combination.keys():
         print(combination)
         for v,var in enumerate(threshold_combination[combination]):
@@ -353,20 +359,23 @@ def compute_climatologies(data,config):
         # calculate and save the climatology of weather windows given the 'suitable conditions' mask
         years_str = str(config['years'][0])+'_'+str(config['years'][1])
         print('weather windows')
-        weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1,'lat':60,'lon':60}))
+        weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks))
         weather_window.to_dataset(name=combination).\
             to_netcdf(config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc')
         # calculate and save the climatology of the suitable conditions (frequency)
         print('climatology')
-        suitable_climatology=suitable_conditions[combination].astype('float32').groupby('time.month').mean().chunk({'lat':60,'lon':60})
+        suitable_climatology=suitable_conditions[combination].astype('float32').groupby('time.month').mean().chunk(spatial_chunks)
         suitable_climatology.to_dataset(name=combination).\
             to_netcdf(config['data_path']+combination+'_climatology_years_'+years_str+'.nc')
         # calculate and save the extreme (interannual) climatology of suitable weather windows (frequency during worse/median/best year)
         print('extreme climatology')
-        suitable_extreme_climatology = compute_extreme_climatology(suitable_conditions[combination].astype('float32').chunk({'time':-1,'lat':60,'lon':60}))
+        suitable_extreme_climatology = compute_extreme_climatology(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks))
         suitable_extreme_climatology.to_dataset(name=combination).\
             to_netcdf(config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc')
-
+        out_names[combination]=[config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc',
+                                config['data_path']+combination+'_climatology_years_'+years_str+'.nc',
+                                config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc']
+    return out_names
 
 def load_data(config):
     '''
@@ -416,3 +425,62 @@ def load_data(config):
             #    print(var+'_exceed'+limit)
             #    data[var+'_exceed'+limit]=data[var+'_exceed'+limit].rename({'date':'time'})
     return data
+
+def test():
+    '''
+    Test the different functions with dummy data
+    '''
+    time       = np.arange(datetime(2001,1,1), datetime(2002,1,1), timedelta(days=1)).astype(datetime)
+    nx         = time.size
+    dum1       = xr.DataArray(np.zeros(nx),dims='time').assign_coords({'time':time})
+    dum2       = xr.DataArray(np.zeros(nx),dims='time').assign_coords({'time':time})
+    dum1[:31]  = 1
+    dum2[:59]  = 2
+    out_correct={}
+    threshold_combination = {'th1':['dum1_exceed1'],'th2':['dum2_exceed2'],'combined':['dum1_exceed1','dum2_exceed2']}
+    out_correct={'th1':[0,0,0],'th2':[0,0,0],'combined':[0,0,0]}
+    # climatology
+    config={}
+    data={}
+    config['years']=[2001,2001]
+    config['data_path']=''
+    config['threshold_combination']=threshold_combination
+    data['dum1_exceed1']=dum1.to_dataset(name='dum1_exceed1')
+    data['dum2_exceed2']=dum2.to_dataset(name='dum2_exceed2')
+    out_names = compute_climatologies(data,config,spatial_chunks={})
+    print('Checking output...')
+    for combination in out_names.keys():
+        print(combination)
+        out = xr.open_dataset(out_names[combination][0])
+        try:
+            assert out[combination].isel(windows=0).values[0]==out_correct[combination][0], f'non-expected value for {combination}'
+        except AssertionError:
+            print('non-expected value for '+combination+' weather windows')
+        else:
+            print(combination+' weather windows as expected')
+        #
+        out.close()
+        os.remove(out_names[combination][0])
+        #
+        out = xr.open_dataset(out_names[combination][1])
+        try:
+            assert out[combination].values[0]==out_correct[combination][1], f'non-expected value for {combination}'
+        except AssertionError:
+            print('non-expected value for '+combination + ' climatologies.')
+        else:
+            print(combination+' climatologies as expected')
+        #
+        out.close()
+        os.remove(out_names[combination][1])
+        #
+        out = xr.open_dataset(out_names[combination][2])
+        try:
+            assert out[combination].isel(quantile=1).values[0]==out_correct[combination][2], f'non-expected value for {combination}'
+        except AssertionError:
+            print('non-expected value for '+combination + ' climatological extremens.')
+        else:
+            print(combination+' climatological extremes as expected')
+        #
+        out.close()
+        os.remove(out_names[combination][2])
+
