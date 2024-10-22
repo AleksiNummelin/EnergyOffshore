@@ -2,24 +2,20 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.7
+#Version: 0.2.8
 
 ### --- Libraries --- ### 
 import numpy as np
 import xarray as xr
 from datetime import datetime,timedelta
 import glob
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.path as mpath
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from matplotlib.colors import from_levels_and_colors
-import yaml
-from dask.distributed import Client, LocalCluster, progress
 import os
-import socket
 
 def compute_weather_windows(suitable_conditions,windows=[3,5,7]):
     '''
