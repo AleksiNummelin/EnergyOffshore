@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.8
+#Version: 0.2.9
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -27,7 +27,7 @@ def compute_weather_windows(suitable_conditions,windows=[3,5,7]):
     suitable_conditions: xr.DataArray [time,lat,lon], mask [0 or 1]
                          of suitable conditions that match user 
                          defined criteria (float)
-    windows: list or numpy.array, weather window lengths in days (int)
+    windows: list or numpy.array (default=[3,5,7]), weather window lengths in days (int)
     
     Output:
     ----------
@@ -309,7 +309,8 @@ def compute_extreme_climatology(var,quantiles=[0.05,0.5,0.95]):
     
     return var_out
 
-def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60}):
+def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60},quantiles=[0.05,0.5,0.95],windows=[3,5,7],allowed_exceedance=0,
+                          compute_ww=True, compute_climatology=True, compute_eclimatology=True):
     '''
     Compute monthly climatologies and save them to netcdf files.
     
@@ -328,6 +329,17 @@ def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60}):
                     climatologies, we need to have a continuous chunk on time dimension. Therefore, it is
                     likely desirable to chunk the spatial dimensions in order to avoid very large memory
                     consumption.
+    quantiles: List or Array (default=[0.05,0.5,0.95]), specifying the quantiles of interannual variability [0-1]
+               Passed directly to compute_extreme_climatology function
+    windows: list or numpy.array (default=[3,5,7]), weather window lengths in days (int). Passed directly to
+             compute_weather_windows function.
+    allowed_exceedance: int (default=0), for daily data this needs to be 0, 
+                        but for hourly data this can be set between 0 (no exceedance allowed) 
+                        to 23 (23 hours exceedance allowed).
+    compute_ww:           boolean (default=True), whether or not to compute weather windows
+    compute_climatology:  boolean (default=True), whether or not to compute exceedance climatology
+    compute_eclimatology: boolean (default=True), whether or not to compute the interannual extremes of the exceedance climatology.
+                          It only makes sense to compute this if more than one year is considered at once.
 
     Output:
     -------
@@ -343,34 +355,45 @@ def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60}):
     for combination in threshold_combination.keys():
         print(combination)
         for v,var in enumerate(threshold_combination[combination]):
-            if 'ws' in var:
-                dum = data[var][var]
-                dum = (1-dum.where(dum<1).fillna(1)).astype(bool)
-            else:
-                dum=(1-data[var][var].fillna(1).astype(bool))
+            dum = data[var][var]
+            # The exceedance data is allowed to be between 0-24, but assumed to have daily frequency.
+            # Here any exceedance triggers the day not to be within the 'suitable conditions' (<1 condition)
+            # Later on, this this could be changed such that one can allow for e.g. 4 hours a day to exceed a limit
+            # by changing the condition to dum<4.
+            dum = (1-dum.where(dum<(allowed_exceedance+1)).fillna(1)).astype(bool)
             if v==0:
                 suitable_conditions[combination] = dum
             else:
                 suitable_conditions[combination] = (suitable_conditions[combination] & dum)
         # calculate and save the climatology of weather windows given the 'suitable conditions' mask
         years_str = str(config['years'][0])+'_'+str(config['years'][1])
-        print('weather windows')
-        weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks))
-        weather_window.to_dataset(name=combination).\
-            to_netcdf(config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc')
+        out_list[]
+        if compute_ww:
+            print('weather windows')
+            weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks),windows=windows)
+            weather_window.to_dataset(name=combination).\
+                to_netcdf(config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc')
+            #
+            out_list.append(config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc')
         # calculate and save the climatology of the suitable conditions (frequency)
-        print('climatology')
-        suitable_climatology=suitable_conditions[combination].astype('float32').groupby('time.month').mean().chunk(spatial_chunks)
-        suitable_climatology.to_dataset(name=combination).\
-            to_netcdf(config['data_path']+combination+'_climatology_years_'+years_str+'.nc')
+        if compute_climatology:
+            print('climatology')
+            suitable_climatology=suitable_conditions[combination].astype('float32').groupby('time.month').mean().chunk(spatial_chunks)
+            suitable_climatology.to_dataset(name=combination).\
+                to_netcdf(config['data_path']+combination+'_climatology_years_'+years_str+'.nc')
+            #
+            out_list.append(config['data_path']+combination+'_climatology_years_'+years_str+'.nc')
         # calculate and save the extreme (interannual) climatology of suitable weather windows (frequency during worse/median/best year)
-        print('extreme climatology')
-        suitable_extreme_climatology = compute_extreme_climatology(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks))
-        suitable_extreme_climatology.to_dataset(name=combination).\
-            to_netcdf(config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc')
-        out_names[combination]=[config['data_path']+combination+'_weather_windows_years_'+years_str+'.nc',
-                                config['data_path']+combination+'_climatology_years_'+years_str+'.nc',
-                                config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc']
+        if compute_eclimatology:
+            print('extreme climatology')
+            suitable_extreme_climatology = compute_extreme_climatology(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks),quantiles=quantiles)
+            suitable_extreme_climatology.to_dataset(name=combination).\
+                to_netcdf(config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc')
+            #
+            out_list.append(config['data_path']+combination+'_extreme_climatology_years_'+years_str+'.nc')
+        #
+        out_names[combination]=out_list
+        
     return out_names
 
 def load_data(config):
