@@ -2,7 +2,7 @@
 #
 #Destination Earth: Energy Offshore application
 #Author: Aleksi Nummelin, Andrew Twelves, Jonni Lehtiranta
-#Version: 0.2.9
+#Version: 0.3.0
 
 ### --- Libraries --- ### 
 import numpy as np
@@ -367,7 +367,7 @@ def compute_climatologies(data,config,spatial_chunks={'lat':60,'lon':60},quantil
                 suitable_conditions[combination] = (suitable_conditions[combination] & dum)
         # calculate and save the climatology of weather windows given the 'suitable conditions' mask
         years_str = str(config['years'][0])+'_'+str(config['years'][1])
-        out_list[]
+        out_list = []
         if compute_ww:
             print('weather windows')
             weather_window=compute_weather_windows(suitable_conditions[combination].astype('float32').chunk({'time':-1}).chunk(spatial_chunks),windows=windows)
